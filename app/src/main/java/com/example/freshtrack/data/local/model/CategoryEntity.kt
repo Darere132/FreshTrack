@@ -1,4 +1,4 @@
-package com.example.freshtrack.data
+package com.example.freshtrack.data.local.model
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey

@@ -1,9 +1,14 @@
-package com.example.freshtrack.data
+package com.example.freshtrack.data.repository
 
+import com.example.freshtrack.data.local.dao.CategoryDao
+import com.example.freshtrack.data.local.dao.ItemDao
+import com.example.freshtrack.data.local.model.CategoryEntity
+import com.example.freshtrack.data.local.model.ItemEntity
 import kotlinx.coroutines.flow.Flow
 
 class OfflineItemRepository(
-    private val itemDao: ItemDao
+    private val itemDao: ItemDao,
+    private val categoryDao: CategoryDao
 ) : ItemRepository {
 
     override fun getAllItemsStream(): Flow<List<ItemEntity>> = itemDao.getAllItems()
@@ -25,4 +30,7 @@ class OfflineItemRepository(
     override suspend fun markConsumed(id: Int) {
         itemDao.markConsumed(id)
     }
+
+    override fun getCategoriesStream(): Flow<List<CategoryEntity>> =
+        categoryDao.getAllCategories()
 }

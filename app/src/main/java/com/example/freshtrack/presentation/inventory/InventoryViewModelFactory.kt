@@ -2,7 +2,7 @@ package com.example.freshtrack.presentation.inventory
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.example.freshtrack.data.ItemRepository
+import com.example.freshtrack.data.repository.ItemRepository
 
 class InventoryViewModelFactory(
     private val itemRepository: ItemRepository

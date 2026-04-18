@@ -1,9 +1,13 @@
-package com.example.freshtrack.data
+package com.example.freshtrack.data.local
 
 import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import com.example.freshtrack.data.local.dao.CategoryDao
+import com.example.freshtrack.data.local.dao.ItemDao
+import com.example.freshtrack.data.local.model.CategoryEntity
+import com.example.freshtrack.data.local.model.ItemEntity
 
 @Database(
     entities = [ItemEntity::class, CategoryEntity::class],

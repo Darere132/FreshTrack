@@ -1,6 +1,6 @@
-package com.example.freshtrack.presentation.inventory
+package com.example.freshtrack.presentation
 
-import com.example.freshtrack.data.ItemEntity
+import com.example.freshtrack.data.local.model.ItemEntity
 import java.util.concurrent.TimeUnit
 
 data class InventoryItemUi(
