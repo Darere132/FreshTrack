@@ -17,9 +17,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.unit.dp
-import com.example.freshtrack.R
 import com.example.freshtrack.presentation.ItemStatus
 
 enum class InventoryFilterStatus {
@@ -60,6 +58,15 @@ fun InventoryScreen(
     var filterExpanded by remember { mutableStateOf(false) }
     var sortExpanded by remember { mutableStateOf(false) }
 
+    val colors = MaterialTheme.colorScheme
+    val navItemColors = NavigationBarItemDefaults.colors(
+        selectedIconColor = colors.primary,
+        selectedTextColor = colors.primary,
+        indicatorColor = colors.primary.copy(alpha = 0.15f),
+        unselectedIconColor = colors.onSurfaceVariant,
+        unselectedTextColor = colors.onSurfaceVariant
+    )
+
     val filteredItems = remember(uiState.items, searchQuery, selectedFilter, selectedSort) {
         uiState.items
             .filter { item ->
@@ -82,10 +89,10 @@ fun InventoryScreen(
     }
 
     Scaffold(
-        containerColor = Color(0xFFF4F4F4), // celkové jemne sivé pozadie
+        containerColor = colors.background,
         bottomBar = {
             NavigationBar(
-                containerColor = Color.White,
+                containerColor = colors.surface,
                 tonalElevation = 0.dp
             ) {
                 NavigationBarItem(
@@ -93,39 +100,21 @@ fun InventoryScreen(
                     onClick = {},
                     icon = { Icon(Icons.Default.Inventory2, contentDescription = "Inventory") },
                     label = { Text("Inventory") },
-                    colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = colorResource(id = R.color.light_blue),
-                        selectedTextColor = colorResource(id = R.color.light_blue),
-                        indicatorColor = colorResource(id = R.color.light_blue).copy(alpha = 0.15f),
-                        unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                        unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    colors = navItemColors
                 )
                 NavigationBarItem(
                     selected = false,
                     onClick = onRecipesClick,
                     icon = { Icon(Icons.Default.MenuBook, contentDescription = "Recipes") },
                     label = { Text("Recipes") },
-                    colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = colorResource(id = R.color.light_blue),
-                        selectedTextColor = colorResource(id = R.color.light_blue),
-                        indicatorColor = colorResource(id = R.color.light_blue).copy(alpha = 0.15f),
-                        unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                        unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    colors = navItemColors
                 )
                 NavigationBarItem(
                     selected = false,
                     onClick = onSettingsClick,
                     icon = { Icon(Icons.Default.Settings, contentDescription = "Settings") },
                     label = { Text("Settings") },
-                    colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = colorResource(id = R.color.light_blue),
-                        selectedTextColor = colorResource(id = R.color.light_blue),
-                        indicatorColor = colorResource(id = R.color.light_blue).copy(alpha = 0.15f),
-                        unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                        unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    colors = navItemColors
                 )
             }
         }
@@ -135,9 +124,8 @@ fun InventoryScreen(
                 .padding(padding)
                 .fillMaxSize()
         ) {
-            // 1) Header - white
             Surface(
-                color = Color.White,
+                color = colors.surface,
                 tonalElevation = 0.dp,
                 shadowElevation = 0.dp,
                 modifier = Modifier.fillMaxWidth()
@@ -156,15 +144,13 @@ fun InventoryScreen(
                 }
             }
 
-            // 2) Gray divider line
             HorizontalDivider(
                 thickness = 1.dp,
-                color = Color(0xFFE0E0E0)
+                color = colors.outlineVariant
             )
 
-            // 3) Filters area - white
             Surface(
-                color = Color.White,
+                color = colors.surface,
                 tonalElevation = 0.dp,
                 shadowElevation = 0.dp,
                 modifier = Modifier.fillMaxWidth()
@@ -180,6 +166,7 @@ fun InventoryScreen(
                         singleLine = true,
                         label = { Text("Search items") }
                     )
+
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -199,9 +186,7 @@ fun InventoryScreen(
                                 onValueChange = {},
                                 readOnly = true,
                                 label = { Text("Status") },
-                                trailingIcon = {
-                                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = filterExpanded)
-                                },
+                                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = filterExpanded) },
                                 modifier = Modifier.menuAnchor().fillMaxWidth()
                             )
                             ExposedDropdownMenu(
@@ -239,9 +224,7 @@ fun InventoryScreen(
                                 onValueChange = {},
                                 readOnly = true,
                                 label = { Text("Sort") },
-                                trailingIcon = {
-                                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = sortExpanded)
-                                },
+                                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = sortExpanded) },
                                 modifier = Modifier.menuAnchor().fillMaxWidth()
                             )
                             ExposedDropdownMenu(
@@ -267,11 +250,10 @@ fun InventoryScreen(
                 }
             }
 
-            // 4) List area - gray background, white cards
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color(0xFFF4F4F4))
+                    .background(colors.background)
             ) {
                 if (filteredItems.isEmpty()) {
                     Box(
@@ -290,7 +272,7 @@ fun InventoryScreen(
                     ) {
                         items(filteredItems, key = { it.id }) { item ->
                             Card(
-                                colors = CardDefaults.cardColors(containerColor = Color.White),
+                                colors = CardDefaults.cardColors(containerColor = colors.surface),
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .clickable { onEditClick(item.id) }
@@ -321,6 +303,7 @@ fun InventoryScreen(
                                             )
                                         }
                                     }
+
                                     val categoryAndQty = buildString {
                                         if (!item.categoryName.isNullOrBlank()) {
                                             append(item.categoryName)
@@ -332,12 +315,12 @@ fun InventoryScreen(
                                     Text(
                                         text = categoryAndQty,
                                         style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        color = colors.onSurfaceVariant
                                     )
                                     Text(
                                         text = "Expires: ${item.formattedExpiryDate}",
                                         style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        color = colors.onSurfaceVariant
                                     )
                                 }
                             }

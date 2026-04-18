@@ -12,10 +12,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.colorResource
-import com.example.freshtrack.R
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import java.text.SimpleDateFormat
@@ -41,6 +38,7 @@ fun ItemEditScreen(
     var showDeleteConfirm by remember { mutableStateOf(false) }
 
     val isEdit = uiState.id != null
+    val colors = MaterialTheme.colorScheme
 
     val calendar = Calendar.getInstance().apply {
         uiState.expirationDate?.let { timeInMillis = it }
@@ -79,7 +77,8 @@ fun ItemEditScreen(
                         onDelete()
                     },
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.error
+                        containerColor = colors.error,
+                        contentColor = colors.onError
                     )
                 ) { Text("Delete") }
             },
@@ -92,11 +91,11 @@ fun ItemEditScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF2F2F2))
+            .background(colors.background)
     ) {
-        // TOP WHITE BAR
+        // TOP BAR
         Surface(
-            color = Color.White,
+            color = colors.surface,
             shadowElevation = 1.dp,
             modifier = Modifier.fillMaxWidth()
         ) {
@@ -117,7 +116,7 @@ fun ItemEditScreen(
             }
         }
 
-        // CONTENT AREA
+        // CONTENT
         Column(
             modifier = Modifier
                 .weight(1f)
@@ -126,7 +125,7 @@ fun ItemEditScreen(
                 .padding(16.dp)
         ) {
             Surface(
-                color = Color.White,
+                color = colors.surface,
                 shape = MaterialTheme.shapes.medium,
                 shadowElevation = 1.dp,
                 modifier = Modifier.fillMaxWidth()
@@ -239,9 +238,9 @@ fun ItemEditScreen(
             }
         }
 
-        // BOTTOM WHITE ACTIONS
+        // BOTTOM ACTIONS
         Surface(
-            color = Color.White,
+            color = colors.surface,
             shadowElevation = 1.dp,
             modifier = Modifier.fillMaxWidth()
         ) {
@@ -256,8 +255,8 @@ fun ItemEditScreen(
                     enabled = uiState.isValid,
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = colorResource(id = R.color.light_blue),
-                        contentColor = MaterialTheme.colorScheme.onPrimary
+                        containerColor = colors.primary,
+                        contentColor = colors.onPrimary
                     )
                 ) { Text("Save") }
 
@@ -271,7 +270,7 @@ fun ItemEditScreen(
                         onClick = { showDeleteConfirm = true },
                         modifier = Modifier.fillMaxWidth(),
                         colors = ButtonDefaults.outlinedButtonColors(
-                            contentColor = MaterialTheme.colorScheme.error
+                            contentColor = colors.error
                         )
                     ) {
                         Text("Delete")
