@@ -1,0 +1,26 @@
+package com.example.freshtrack.data
+
+import androidx.room.*
+import kotlinx.coroutines.flow.Flow
+
+@Dao
+interface ItemDao {
+
+    @Query("SELECT * FROM items ORDER BY expirationDate ASC")
+    fun getAllItems(): Flow<List<ItemEntity>>
+
+    @Query("SELECT * FROM items WHERE id = :id")
+    suspend fun getItemById(id: Int): ItemEntity?
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertItem(itemEntity: ItemEntity): Long
+
+    @Update
+    suspend fun updateItem(itemEntity: ItemEntity)
+
+    @Delete
+    suspend fun deleteItem(itemEntity: ItemEntity)
+
+    @Query("UPDATE items SET isConsumed = 1 WHERE id = :id")
+    suspend fun markConsumed(id: Int)
+}
