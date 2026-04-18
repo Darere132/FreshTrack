@@ -81,6 +81,23 @@ class ItemEditViewModel(
         }
     }
 
+    fun delete(onDone: () -> Unit) {
+        val id = _uiState.value.id ?: return
+        viewModelScope.launch {
+            val item = repository.getItem(id) ?: return@launch
+            repository.deleteItem(item)
+            onDone()
+        }
+    }
+
+    fun markConsumed(onDone: () -> Unit) {
+        val id = _uiState.value.id ?: return
+        viewModelScope.launch {
+            repository.markConsumed(id)
+            onDone()
+        }
+    }
+
     class Factory(
         private val repository: ItemRepository
     ) : ViewModelProvider.Factory {

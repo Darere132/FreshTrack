@@ -1,6 +1,9 @@
 package com.example.freshtrack.presentation
 
 import com.example.freshtrack.data.local.model.ItemEntity
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import java.util.concurrent.TimeUnit
 
 data class InventoryItemUi(
@@ -8,8 +11,11 @@ data class InventoryItemUi(
     val name: String,
     val quantityText: String,
     val expirationDate: Long,
+    val formattedExpiryDate: String,
     val status: ItemStatus
 )
+
+private val dateFormatter = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
 
 fun ItemEntity.toUi(nowMillis: Long = System.currentTimeMillis()): InventoryItemUi {
     val twoDaysMillis = TimeUnit.DAYS.toMillis(2)
@@ -25,6 +31,7 @@ fun ItemEntity.toUi(nowMillis: Long = System.currentTimeMillis()): InventoryItem
         name = name,
         quantityText = "$quantity $unit",
         expirationDate = expirationDate,
+        formattedExpiryDate = dateFormatter.format(Date(expirationDate)),
         status = status
     )
 }

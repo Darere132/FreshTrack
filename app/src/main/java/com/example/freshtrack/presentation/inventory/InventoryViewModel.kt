@@ -1,8 +1,9 @@
+package com.example.freshtrack.presentation.inventory
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.freshtrack.data.repository.ItemRepository
 import com.example.freshtrack.presentation.ItemStatus
-import com.example.freshtrack.presentation.inventory.InventoryUiState
 import com.example.freshtrack.presentation.toUi
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow

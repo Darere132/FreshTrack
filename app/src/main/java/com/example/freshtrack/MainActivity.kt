@@ -1,6 +1,6 @@
 package com.example.freshtrack
 
-import InventoryViewModel
+import com.example.freshtrack.presentation.inventory.InventoryViewModel
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -50,6 +50,7 @@ class MainActivity : ComponentActivity() {
                         )
                     }
 
+                    // Add new item
                     composable("item_edit") {
                         val uiState by itemEditViewModel.uiState.collectAsStateWithLifecycle()
 
@@ -68,17 +69,16 @@ class MainActivity : ComponentActivity() {
                             onSave = {
                                 itemEditViewModel.save { navController.popBackStack() }
                             },
+                            onDelete = {},           // not reachable in create mode (button hidden)
+                            onMarkConsumed = {},     // not reachable in create mode (button hidden)
                             onBack = { navController.popBackStack() }
                         )
                     }
 
+                    // Edit existing item
                     composable(
                         route = "item_edit/{itemId}",
-                        arguments = listOf(
-                            navArgument("itemId") {
-                                type = NavType.IntType
-                            }
-                        )
+                        arguments = listOf(navArgument("itemId") { type = NavType.IntType })
                     ) { backStackEntry ->
                         val itemId = backStackEntry.arguments?.getInt("itemId") ?: -1
                         val uiState by itemEditViewModel.uiState.collectAsStateWithLifecycle()
@@ -97,6 +97,12 @@ class MainActivity : ComponentActivity() {
                             onExpirationDateChange = itemEditViewModel::onExpirationDateChange,
                             onSave = {
                                 itemEditViewModel.save { navController.popBackStack() }
+                            },
+                            onDelete = {
+                                itemEditViewModel.delete { navController.popBackStack() }
+                            },
+                            onMarkConsumed = {
+                                itemEditViewModel.markConsumed { navController.popBackStack() }
                             },
                             onBack = { navController.popBackStack() }
                         )

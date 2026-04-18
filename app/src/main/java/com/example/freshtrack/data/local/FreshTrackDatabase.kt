@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.sqlite.db.SupportSQLiteDatabase
 import com.example.freshtrack.data.local.dao.CategoryDao
 import com.example.freshtrack.data.local.dao.ItemDao
 import com.example.freshtrack.data.local.model.CategoryEntity
@@ -31,6 +32,17 @@ abstract class FreshTrackDatabase : RoomDatabase() {
                     "freshtrack_database"
                 )
                     .fallbackToDestructiveMigration()
+                    .addCallback(object : RoomDatabase.Callback() {
+                        override fun onCreate(db: SupportSQLiteDatabase) {
+                            super.onCreate(db)
+                            listOf(
+                                "Dairy", "Meat", "Vegetables", "Fruit",
+                                "Bakery", "Drinks", "Frozen", "Other"
+                            ).forEach { name ->
+                                db.execSQL("INSERT INTO categories (name) VALUES ('$name')")
+                            }
+                        }
+                    })
                     .build()
                     .also { Instance = it }
             }

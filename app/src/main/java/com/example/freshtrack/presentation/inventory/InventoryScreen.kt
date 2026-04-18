@@ -4,6 +4,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Inventory2
@@ -12,8 +13,11 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.example.freshtrack.presentation.ItemStatus
 
 enum class InventoryFilterStatus {
     ALL, FRESH, EXPIRING_SOON, EXPIRED
@@ -21,6 +25,20 @@ enum class InventoryFilterStatus {
 
 enum class InventorySort {
     EXPIRY_ASC, EXPIRY_DESC, NAME_ASC
+}
+
+private fun statusLabel(status: ItemStatus) = when (status) {
+    ItemStatus.FRESH -> "Fresh"
+    ItemStatus.EXPIRING_SOON -> "Expiring soon"
+    ItemStatus.EXPIRED -> "Expired"
+    ItemStatus.CONSUMED -> "Consumed"
+}
+
+private fun statusColor(status: ItemStatus) = when (status) {
+    ItemStatus.FRESH -> Color(0xFF388E3C)
+    ItemStatus.EXPIRING_SOON -> Color(0xFFF57C00)
+    ItemStatus.EXPIRED -> Color(0xFFD32F2F)
+    ItemStatus.CONSUMED -> Color(0xFF757575)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -65,21 +83,21 @@ fun InventoryScreen(
             NavigationBar {
                 NavigationBarItem(
                     selected = true,
-                    onClick = { /* current screen */ },
-                    icon = { Icon(Icons.Default.Inventory2, contentDescription = "Zásoby") },
-                    label = { Text("Zásoby") }
+                    onClick = {},
+                    icon = { Icon(Icons.Default.Inventory2, contentDescription = "Inventory") },
+                    label = { Text("Inventory") }
                 )
                 NavigationBarItem(
                     selected = false,
                     onClick = onRecipesClick,
-                    icon = { Icon(Icons.Default.MenuBook, contentDescription = "Recepty") },
-                    label = { Text("Recepty") }
+                    icon = { Icon(Icons.Default.MenuBook, contentDescription = "Recipes") },
+                    label = { Text("Recipes") }
                 )
                 NavigationBarItem(
                     selected = false,
                     onClick = onSettingsClick,
-                    icon = { Icon(Icons.Default.Settings, contentDescription = "Nastavenia") },
-                    label = { Text("Nastavenia") }
+                    icon = { Icon(Icons.Default.Settings, contentDescription = "Settings") },
+                    label = { Text("Settings") }
                 )
             }
         }
@@ -89,7 +107,7 @@ fun InventoryScreen(
                 .padding(padding)
                 .fillMaxSize()
         ) {
-            // 1) Header box
+            // Header
             Surface(
                 tonalElevation = 2.dp,
                 modifier = Modifier.fillMaxWidth()
@@ -98,19 +116,17 @@ fun InventoryScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp, vertical = 14.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = "FreshTrack",
-                        style = MaterialTheme.typography.titleLarge
-                    )
+                    Text("FreshTrack", style = MaterialTheme.typography.titleLarge)
                     FilledIconButton(onClick = onAddClick) {
-                        Icon(Icons.Default.Add, contentDescription = "Pridať položku")
+                        Icon(Icons.Default.Add, contentDescription = "Add item")
                     }
                 }
             }
 
-            // 2) Search + filter/sort box
+            // Search + filter/sort
             Surface(
                 tonalElevation = 1.dp,
                 modifier = Modifier.fillMaxWidth()
@@ -124,13 +140,13 @@ fun InventoryScreen(
                         onValueChange = { searchQuery = it },
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
-                        label = { Text("Vyhľadať položku") }
+                        label = { Text("Search items") }
                     )
-
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
+                        // Filter dropdown
                         ExposedDropdownMenuBox(
                             expanded = filterExpanded,
                             onExpandedChange = { filterExpanded = !filterExpanded },
@@ -138,55 +154,41 @@ fun InventoryScreen(
                         ) {
                             OutlinedTextField(
                                 value = when (selectedFilter) {
-                                    InventoryFilterStatus.ALL -> "Všetky stavy"
+                                    InventoryFilterStatus.ALL -> "All"
                                     InventoryFilterStatus.FRESH -> "Fresh"
                                     InventoryFilterStatus.EXPIRING_SOON -> "Expiring soon"
                                     InventoryFilterStatus.EXPIRED -> "Expired"
                                 },
                                 onValueChange = {},
                                 readOnly = true,
-                                label = { Text("Filter stavu") },
-                                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = filterExpanded) },
-                                modifier = Modifier
-                                    .menuAnchor()
-                                    .fillMaxWidth()
+                                label = { Text("Status") },
+                                trailingIcon = {
+                                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = filterExpanded)
+                                },
+                                modifier = Modifier.menuAnchor().fillMaxWidth()
                             )
-
                             ExposedDropdownMenu(
                                 expanded = filterExpanded,
                                 onDismissRequest = { filterExpanded = false }
                             ) {
-                                DropdownMenuItem(
-                                    text = { Text("Všetky stavy") },
-                                    onClick = {
-                                        selectedFilter = InventoryFilterStatus.ALL
-                                        filterExpanded = false
-                                    }
-                                )
-                                DropdownMenuItem(
-                                    text = { Text("Fresh") },
-                                    onClick = {
-                                        selectedFilter = InventoryFilterStatus.FRESH
-                                        filterExpanded = false
-                                    }
-                                )
-                                DropdownMenuItem(
-                                    text = { Text("Expiring soon") },
-                                    onClick = {
-                                        selectedFilter = InventoryFilterStatus.EXPIRING_SOON
-                                        filterExpanded = false
-                                    }
-                                )
-                                DropdownMenuItem(
-                                    text = { Text("Expired") },
-                                    onClick = {
-                                        selectedFilter = InventoryFilterStatus.EXPIRED
-                                        filterExpanded = false
-                                    }
-                                )
+                                listOf(
+                                    InventoryFilterStatus.ALL to "All",
+                                    InventoryFilterStatus.FRESH to "Fresh",
+                                    InventoryFilterStatus.EXPIRING_SOON to "Expiring soon",
+                                    InventoryFilterStatus.EXPIRED to "Expired"
+                                ).forEach { (status, label) ->
+                                    DropdownMenuItem(
+                                        text = { Text(label) },
+                                        onClick = {
+                                            selectedFilter = status
+                                            filterExpanded = false
+                                        }
+                                    )
+                                }
                             }
                         }
 
+                        // Sort dropdown
                         ExposedDropdownMenuBox(
                             expanded = sortExpanded,
                             onExpandedChange = { sortExpanded = !sortExpanded },
@@ -194,58 +196,50 @@ fun InventoryScreen(
                         ) {
                             OutlinedTextField(
                                 value = when (selectedSort) {
-                                    InventorySort.EXPIRY_ASC -> "Expirácia ↑"
-                                    InventorySort.EXPIRY_DESC -> "Expirácia ↓"
-                                    InventorySort.NAME_ASC -> "Názov A-Z"
+                                    InventorySort.EXPIRY_ASC -> "Expiry ↑"
+                                    InventorySort.EXPIRY_DESC -> "Expiry ↓"
+                                    InventorySort.NAME_ASC -> "Name A-Z"
                                 },
                                 onValueChange = {},
                                 readOnly = true,
-                                label = { Text("Zoradenie") },
-                                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = sortExpanded) },
-                                modifier = Modifier
-                                    .menuAnchor()
-                                    .fillMaxWidth()
+                                label = { Text("Sort") },
+                                trailingIcon = {
+                                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = sortExpanded)
+                                },
+                                modifier = Modifier.menuAnchor().fillMaxWidth()
                             )
-
                             ExposedDropdownMenu(
                                 expanded = sortExpanded,
                                 onDismissRequest = { sortExpanded = false }
                             ) {
-                                DropdownMenuItem(
-                                    text = { Text("Expirácia ↑") },
-                                    onClick = {
-                                        selectedSort = InventorySort.EXPIRY_ASC
-                                        sortExpanded = false
-                                    }
-                                )
-                                DropdownMenuItem(
-                                    text = { Text("Expirácia ↓") },
-                                    onClick = {
-                                        selectedSort = InventorySort.EXPIRY_DESC
-                                        sortExpanded = false
-                                    }
-                                )
-                                DropdownMenuItem(
-                                    text = { Text("Názov A-Z") },
-                                    onClick = {
-                                        selectedSort = InventorySort.NAME_ASC
-                                        sortExpanded = false
-                                    }
-                                )
+                                listOf(
+                                    InventorySort.EXPIRY_ASC to "Expiry ↑",
+                                    InventorySort.EXPIRY_DESC to "Expiry ↓",
+                                    InventorySort.NAME_ASC to "Name A-Z"
+                                ).forEach { (sort, label) ->
+                                    DropdownMenuItem(
+                                        text = { Text(label) },
+                                        onClick = {
+                                            selectedSort = sort
+                                            sortExpanded = false
+                                        }
+                                    )
+                                }
                             }
                         }
                     }
                 }
             }
 
-            // 3) Scroll list
+            // List
             if (filteredItems.isEmpty()) {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(16.dp)
+                        .padding(16.dp),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Text("Žiadne položky pre zadaný filter.")
+                    Text("No items match the current filter.")
                 }
             } else {
                 LazyColumn(
@@ -259,10 +253,41 @@ fun InventoryScreen(
                                 .fillMaxWidth()
                                 .clickable { onEditClick(item.id) }
                         ) {
-                            Column(Modifier.padding(12.dp)) {
-                                Text(item.name, style = MaterialTheme.typography.titleMedium)
-                                Text(item.quantityText)
-                                Text("Status: ${item.status.name}")
+                            Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                // Name row + status badge
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = item.name,
+                                        style = MaterialTheme.typography.titleMedium,
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                    Surface(
+                                        color = statusColor(item.status),
+                                        shape = RoundedCornerShape(12.dp)
+                                    ) {
+                                        Text(
+                                            text = statusLabel(item.status),
+                                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                            color = Color.White,
+                                            style = MaterialTheme.typography.labelSmall
+                                        )
+                                    }
+                                }
+                                // Quantity + expiry date
+                                Text(
+                                    text = item.quantityText,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Text(
+                                    text = "Expires: ${item.formattedExpiryDate}",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
                             }
                         }
                     }
