@@ -2,4 +2,9 @@
     <string name="app_name">FreshTrack</string>
     <string name="empty_items">No items yet</string>
     <string name="status_label">Status: %1$s</string>
+
+    <string name="fresh">FRESH</string>
+    <string name="expired">EXPIRED</string>
+    <string name="expiring_soon">EXPIRING SOON</string>
+
 </resources>

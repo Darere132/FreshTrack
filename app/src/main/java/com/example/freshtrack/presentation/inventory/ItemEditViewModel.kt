@@ -1,6 +1,7 @@
 package com.example.freshtrack.presentation.inventory
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.freshtrack.data.local.model.ItemEntity
 import com.example.freshtrack.data.repository.ItemRepository
@@ -27,6 +28,12 @@ class ItemEditViewModel(
                 _uiState.value = _uiState.value.copy(categories = categories)
             }
         }
+    }
+
+    fun resetForCreate() {
+        _uiState.value = ItemEditUiState(
+            categories = _uiState.value.categories
+        )
     }
 
     fun loadItem(itemId: Int) {
@@ -71,6 +78,18 @@ class ItemEditViewModel(
             else repository.updateItem(entity)
 
             onDone()
+        }
+    }
+
+    class Factory(
+        private val repository: ItemRepository
+    ) : ViewModelProvider.Factory {
+        @Suppress("UNCHECKED_CAST")
+        override fun <T : ViewModel> create(modelClass: Class<T>): T {
+            if (modelClass.isAssignableFrom(ItemEditViewModel::class.java)) {
+                return ItemEditViewModel(repository) as T
+            }
+            throw IllegalArgumentException("Unknown ViewModel class")
         }
     }
 }
