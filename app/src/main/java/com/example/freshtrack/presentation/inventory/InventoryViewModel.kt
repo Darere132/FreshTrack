@@ -15,7 +15,7 @@ class InventoryViewModel(
 ) : ViewModel() {
 
     val uiState: StateFlow<InventoryUiState> =
-        itemRepository.getAllItemsStream()
+        itemRepository.getAllItemsWithCategoryStream()
             .map { items ->
                 InventoryUiState(
                     items = items

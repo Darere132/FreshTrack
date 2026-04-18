@@ -1,14 +1,21 @@
 package com.example.freshtrack.presentation.inventory
 
 import android.app.DatePickerDialog
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
+import com.example.freshtrack.R
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import java.text.SimpleDateFormat
@@ -26,17 +33,19 @@ fun ItemEditScreen(
     onExpirationDateChange: (Long) -> Unit,
     onSave: () -> Unit,
     onDelete: () -> Unit,
-    onMarkConsumed: () -> Unit,
+    onConsumedChange: (Boolean) -> Unit,
     onBack: () -> Unit
 ) {
     val context = LocalContext.current
     var categoryExpanded by remember { mutableStateOf(false) }
     var showDeleteConfirm by remember { mutableStateOf(false) }
 
-    // Build DatePickerDialog. Recreates when date changes so the dialog opens at the right month.
+    val isEdit = uiState.id != null
+
     val calendar = Calendar.getInstance().apply {
         uiState.expirationDate?.let { timeInMillis = it }
     }
+
     val datePickerDialog = remember(uiState.expirationDate) {
         DatePickerDialog(
             context,
@@ -50,16 +59,14 @@ fun ItemEditScreen(
             calendar.get(Calendar.MONTH),
             calendar.get(Calendar.DAY_OF_MONTH)
         ).apply {
-            // Prevent selecting dates in the past
             datePicker.minDate = System.currentTimeMillis()
         }
     }
 
     val formattedDate = uiState.expirationDate?.let {
-        SimpleDateFormat("dd MMM yyyy", Locale.getDefault()).format(Date(it))
-    } ?: "Not set"
+        SimpleDateFormat("dd.MM.yyyy", Locale.getDefault()).format(Date(it))
+    } ?: "DD.MM.YYYY"
 
-    // Delete confirmation dialog
     if (showDeleteConfirm) {
         AlertDialog(
             onDismissRequest = { showDeleteConfirm = false },
@@ -82,138 +89,193 @@ fun ItemEditScreen(
         )
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(if (uiState.id == null) "Add item" else "Edit item") }
-            )
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFF2F2F2))
+    ) {
+        // TOP WHITE BAR
+        Surface(
+            color = Color.White,
+            shadowElevation = 1.dp,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .statusBarsPadding()
+                    .padding(horizontal = 8.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(onClick = onBack) {
+                    Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                }
+                Text(
+                    text = if (isEdit) "Edit Item" else "Add Item",
+                    style = MaterialTheme.typography.titleLarge
+                )
+            }
         }
-    ) { padding ->
+
+        // CONTENT AREA
         Column(
             modifier = Modifier
-                .padding(padding)
+                .weight(1f)
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
                 .padding(16.dp)
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // Name
-            OutlinedTextField(
-                value = uiState.name,
-                onValueChange = onNameChange,
-                label = { Text("Name *") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true
-            )
-
-            // Quantity + Unit on one row
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(
-                    value = uiState.quantity,
-                    onValueChange = onQuantityChange,
-                    label = { Text("Quantity") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                    modifier = Modifier.weight(1f),
-                    singleLine = true
-                )
-                OutlinedTextField(
-                    value = uiState.unit,
-                    onValueChange = onUnitChange,
-                    label = { Text("Unit") },
-                    modifier = Modifier.weight(1f),
-                    singleLine = true
-                )
-            }
-
-            // Category dropdown
-            ExposedDropdownMenuBox(
-                expanded = categoryExpanded,
-                onExpandedChange = { categoryExpanded = !categoryExpanded }
-            ) {
-                val selectedName = uiState.categories
-                    .firstOrNull { it.id == uiState.selectedCategoryId }?.name
-                    ?: "No category"
-                OutlinedTextField(
-                    value = selectedName,
-                    onValueChange = {},
-                    readOnly = true,
-                    label = { Text("Category") },
-                    trailingIcon = {
-                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = categoryExpanded)
-                    },
-                    modifier = Modifier
-                        .menuAnchor()
-                        .fillMaxWidth()
-                )
-                ExposedDropdownMenu(
-                    expanded = categoryExpanded,
-                    onDismissRequest = { categoryExpanded = false }
-                ) {
-                    DropdownMenuItem(
-                        text = { Text("No category") },
-                        onClick = {
-                            onCategoryChange(null)
-                            categoryExpanded = false
-                        }
-                    )
-                    uiState.categories.forEach { cat ->
-                        DropdownMenuItem(
-                            text = { Text(cat.name) },
-                            onClick = {
-                                onCategoryChange(cat.id)
-                                categoryExpanded = false
-                            }
-                        )
-                    }
-                }
-            }
-
-            // Expiry date picker button
-            OutlinedButton(
-                onClick = { datePickerDialog.show() },
+            Surface(
+                color = Color.White,
+                shape = MaterialTheme.shapes.medium,
+                shadowElevation = 1.dp,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Expiry date: $formattedDate  ▾")
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Text("Name *")
+                    OutlinedTextField(
+                        value = uiState.name,
+                        onValueChange = onNameChange,
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true
+                    )
+
+                    Text("Category")
+                    ExposedDropdownMenuBox(
+                        expanded = categoryExpanded,
+                        onExpandedChange = { categoryExpanded = !categoryExpanded }
+                    ) {
+                        val selectedName = uiState.categories
+                            .firstOrNull { it.id == uiState.selectedCategoryId }?.name
+                            ?: "No category"
+
+                        OutlinedTextField(
+                            value = selectedName,
+                            onValueChange = {},
+                            readOnly = true,
+                            trailingIcon = {
+                                ExposedDropdownMenuDefaults.TrailingIcon(expanded = categoryExpanded)
+                            },
+                            modifier = Modifier
+                                .menuAnchor()
+                                .fillMaxWidth()
+                        )
+
+                        ExposedDropdownMenu(
+                            expanded = categoryExpanded,
+                            onDismissRequest = { categoryExpanded = false }
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text("No category") },
+                                onClick = {
+                                    onCategoryChange(null)
+                                    categoryExpanded = false
+                                }
+                            )
+                            uiState.categories.forEach { cat ->
+                                DropdownMenuItem(
+                                    text = { Text(cat.name) },
+                                    onClick = {
+                                        onCategoryChange(cat.id)
+                                        categoryExpanded = false
+                                    }
+                                )
+                            }
+                        }
+                    }
+
+                    Text("Quantity")
+                    OutlinedTextField(
+                        value = uiState.quantity,
+                        onValueChange = onQuantityChange,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true
+                    )
+
+                    Text("Unit")
+                    OutlinedTextField(
+                        value = uiState.unit,
+                        onValueChange = onUnitChange,
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true
+                    )
+
+                    Text("Expiration date *")
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        OutlinedButton(
+                            onClick = { datePickerDialog.show() },
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text(formattedDate)
+                        }
+
+                        if (isEdit) {
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text("Consumed", style = MaterialTheme.typography.labelMedium)
+                                Switch(
+                                    checked = uiState.isConsumed,
+                                    onCheckedChange = onConsumedChange
+                                )
+                            }
+                        }
+                    }
+
+                    Text("Note")
+                    OutlinedTextField(
+                        value = uiState.note,
+                        onValueChange = onNoteChange,
+                        modifier = Modifier.fillMaxWidth(),
+                        minLines = 3
+                    )
+                }
             }
+        }
 
-            // Note
-            OutlinedTextField(
-                value = uiState.note,
-                onValueChange = onNoteChange,
-                label = { Text("Note") },
-                modifier = Modifier.fillMaxWidth(),
-                minLines = 2
-            )
-
-            Spacer(Modifier.height(4.dp))
-
-            // Save / Cancel
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        // BOTTOM WHITE ACTIONS
+        Surface(
+            color = Color.White,
+            shadowElevation = 1.dp,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(
+                modifier = Modifier
+                    .navigationBarsPadding()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
                 Button(
                     onClick = onSave,
                     enabled = uiState.isValid,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = colorResource(id = R.color.light_blue),
+                        contentColor = MaterialTheme.colorScheme.onPrimary
+                    )
                 ) { Text("Save") }
+
                 OutlinedButton(
                     onClick = onBack,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.fillMaxWidth()
                 ) { Text("Cancel") }
-            }
 
-            // Delete / Mark consumed — only visible when editing an existing item
-            if (uiState.id != null) {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                if (isEdit) {
                     OutlinedButton(
-                        onClick = onMarkConsumed,
-                        modifier = Modifier.weight(1f)
-                    ) { Text("Consumed") }
-                    Button(
                         onClick = { showDeleteConfirm = true },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.error
-                        ),
-                        modifier = Modifier.weight(1f)
-                    ) { Text("Delete") }
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = MaterialTheme.colorScheme.error
+                        )
+                    ) {
+                        Text("Delete")
+                    }
                 }
             }
         }

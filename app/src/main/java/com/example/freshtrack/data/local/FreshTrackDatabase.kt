@@ -12,7 +12,7 @@ import com.example.freshtrack.data.local.model.ItemEntity
 
 @Database(
     entities = [ItemEntity::class, CategoryEntity::class],
-    version = 2,
+    version = 3,
     exportSchema = true
 )
 abstract class FreshTrackDatabase : RoomDatabase() {

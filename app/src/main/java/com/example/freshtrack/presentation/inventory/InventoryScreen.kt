@@ -1,5 +1,6 @@
 package com.example.freshtrack.presentation.inventory
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -16,7 +17,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.unit.dp
+import com.example.freshtrack.R
 import com.example.freshtrack.presentation.ItemStatus
 
 enum class InventoryFilterStatus {
@@ -63,9 +66,9 @@ fun InventoryScreen(
                 val byText = item.name.contains(searchQuery.trim(), ignoreCase = true)
                 val byStatus = when (selectedFilter) {
                     InventoryFilterStatus.ALL -> true
-                    InventoryFilterStatus.FRESH -> item.status.name == "FRESH"
-                    InventoryFilterStatus.EXPIRING_SOON -> item.status.name == "EXPIRING_SOON"
-                    InventoryFilterStatus.EXPIRED -> item.status.name == "EXPIRED"
+                    InventoryFilterStatus.FRESH -> item.status == ItemStatus.FRESH
+                    InventoryFilterStatus.EXPIRING_SOON -> item.status == ItemStatus.EXPIRING_SOON
+                    InventoryFilterStatus.EXPIRED -> item.status == ItemStatus.EXPIRED
                 }
                 byText && byStatus
             }
@@ -79,25 +82,50 @@ fun InventoryScreen(
     }
 
     Scaffold(
+        containerColor = Color(0xFFF4F4F4), // celkové jemne sivé pozadie
         bottomBar = {
-            NavigationBar {
+            NavigationBar(
+                containerColor = Color.White,
+                tonalElevation = 0.dp
+            ) {
                 NavigationBarItem(
                     selected = true,
                     onClick = {},
                     icon = { Icon(Icons.Default.Inventory2, contentDescription = "Inventory") },
-                    label = { Text("Inventory") }
+                    label = { Text("Inventory") },
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = colorResource(id = R.color.light_blue),
+                        selectedTextColor = colorResource(id = R.color.light_blue),
+                        indicatorColor = colorResource(id = R.color.light_blue).copy(alpha = 0.15f),
+                        unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 )
                 NavigationBarItem(
                     selected = false,
                     onClick = onRecipesClick,
                     icon = { Icon(Icons.Default.MenuBook, contentDescription = "Recipes") },
-                    label = { Text("Recipes") }
+                    label = { Text("Recipes") },
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = colorResource(id = R.color.light_blue),
+                        selectedTextColor = colorResource(id = R.color.light_blue),
+                        indicatorColor = colorResource(id = R.color.light_blue).copy(alpha = 0.15f),
+                        unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 )
                 NavigationBarItem(
                     selected = false,
                     onClick = onSettingsClick,
                     icon = { Icon(Icons.Default.Settings, contentDescription = "Settings") },
-                    label = { Text("Settings") }
+                    label = { Text("Settings") },
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = colorResource(id = R.color.light_blue),
+                        selectedTextColor = colorResource(id = R.color.light_blue),
+                        indicatorColor = colorResource(id = R.color.light_blue).copy(alpha = 0.15f),
+                        unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 )
             }
         }
@@ -107,9 +135,11 @@ fun InventoryScreen(
                 .padding(padding)
                 .fillMaxSize()
         ) {
-            // Header
+            // 1) Header - white
             Surface(
-                tonalElevation = 2.dp,
+                color = Color.White,
+                tonalElevation = 0.dp,
+                shadowElevation = 0.dp,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Row(
@@ -120,15 +150,23 @@ fun InventoryScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text("FreshTrack", style = MaterialTheme.typography.titleLarge)
-                    FilledIconButton(onClick = onAddClick) {
+                    IconButton(onClick = onAddClick) {
                         Icon(Icons.Default.Add, contentDescription = "Add item")
                     }
                 }
             }
 
-            // Search + filter/sort
+            // 2) Gray divider line
+            HorizontalDivider(
+                thickness = 1.dp,
+                color = Color(0xFFE0E0E0)
+            )
+
+            // 3) Filters area - white
             Surface(
-                tonalElevation = 1.dp,
+                color = Color.White,
+                tonalElevation = 0.dp,
+                shadowElevation = 0.dp,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(
@@ -146,7 +184,6 @@ fun InventoryScreen(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        // Filter dropdown
                         ExposedDropdownMenuBox(
                             expanded = filterExpanded,
                             onExpandedChange = { filterExpanded = !filterExpanded },
@@ -188,7 +225,6 @@ fun InventoryScreen(
                             }
                         }
 
-                        // Sort dropdown
                         ExposedDropdownMenuBox(
                             expanded = sortExpanded,
                             onExpandedChange = { sortExpanded = !sortExpanded },
@@ -231,63 +267,79 @@ fun InventoryScreen(
                 }
             }
 
-            // List
-            if (filteredItems.isEmpty()) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(16.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("No items match the current filter.")
-                }
-            } else {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(12.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    items(filteredItems, key = { it.id }) { item ->
-                        Card(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { onEditClick(item.id) }
-                        ) {
-                            Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                                // Name row + status badge
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically
+            // 4) List area - gray background, white cards
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color(0xFFF4F4F4))
+            ) {
+                if (filteredItems.isEmpty()) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(16.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("No items match the current filter.")
+                    }
+                } else {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(filteredItems, key = { it.id }) { item ->
+                            Card(
+                                colors = CardDefaults.cardColors(containerColor = Color.White),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { onEditClick(item.id) }
+                            ) {
+                                Column(
+                                    Modifier.padding(12.dp),
+                                    verticalArrangement = Arrangement.spacedBy(4.dp)
                                 ) {
-                                    Text(
-                                        text = item.name,
-                                        style = MaterialTheme.typography.titleMedium,
-                                        modifier = Modifier.weight(1f)
-                                    )
-                                    Surface(
-                                        color = statusColor(item.status),
-                                        shape = RoundedCornerShape(12.dp)
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
                                     ) {
                                         Text(
-                                            text = statusLabel(item.status),
-                                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                                            color = Color.White,
-                                            style = MaterialTheme.typography.labelSmall
+                                            text = item.name,
+                                            style = MaterialTheme.typography.titleMedium,
+                                            modifier = Modifier.weight(1f)
                                         )
+                                        Surface(
+                                            color = statusColor(item.status),
+                                            shape = RoundedCornerShape(12.dp)
+                                        ) {
+                                            Text(
+                                                text = statusLabel(item.status),
+                                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                                color = Color.White,
+                                                style = MaterialTheme.typography.labelSmall
+                                            )
+                                        }
                                     }
+                                    val categoryAndQty = buildString {
+                                        if (!item.categoryName.isNullOrBlank()) {
+                                            append(item.categoryName)
+                                            append(" • ")
+                                        }
+                                        append(item.quantityText)
+                                    }
+
+                                    Text(
+                                        text = categoryAndQty,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                    Text(
+                                        text = "Expires: ${item.formattedExpiryDate}",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
                                 }
-                                // Quantity + expiry date
-                                Text(
-                                    text = item.quantityText,
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                                Text(
-                                    text = "Expires: ${item.formattedExpiryDate}",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
                             }
                         }
                     }

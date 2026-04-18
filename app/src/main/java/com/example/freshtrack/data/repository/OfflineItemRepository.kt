@@ -4,6 +4,7 @@ import com.example.freshtrack.data.local.dao.CategoryDao
 import com.example.freshtrack.data.local.dao.ItemDao
 import com.example.freshtrack.data.local.model.CategoryEntity
 import com.example.freshtrack.data.local.model.ItemEntity
+import com.example.freshtrack.data.local.model.ItemWithCategory
 import kotlinx.coroutines.flow.Flow
 
 class OfflineItemRepository(
@@ -12,6 +13,10 @@ class OfflineItemRepository(
 ) : ItemRepository {
 
     override fun getAllItemsStream(): Flow<List<ItemEntity>> = itemDao.getAllItems()
+
+    override fun getAllItemsWithCategoryStream(): Flow<List<ItemWithCategory>> {
+        return itemDao.getAllItemsWithCategoryStream()
+    }
 
     override suspend fun getItem(id: Int): ItemEntity? = itemDao.getItemById(id)
 

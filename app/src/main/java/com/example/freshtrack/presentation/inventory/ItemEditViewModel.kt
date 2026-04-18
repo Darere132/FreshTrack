@@ -46,7 +46,8 @@ class ItemEditViewModel(
                 unit = item.unit,
                 expirationDate = item.expirationDate,
                 note = item.note.orEmpty(),
-                selectedCategoryId = item.categoryId
+                selectedCategoryId = item.categoryId,
+                isConsumed = item.isConsumed
             )
         }
     }
@@ -67,11 +68,11 @@ class ItemEditViewModel(
                 id = s.id ?: 0,
                 name = s.name.trim(),
                 categoryId = s.selectedCategoryId,
-                quantity = s.quantity.toDouble(),
+                quantity = s.quantity.toDoubleOrNull() ?: 1.0,
                 unit = s.unit.trim(),
                 expirationDate = s.expirationDate!!,
                 note = s.note.trim().ifBlank { null },
-                isConsumed = false
+                isConsumed = s.isConsumed
             )
 
             if (s.id == null) repository.insertItem(entity)
@@ -90,12 +91,8 @@ class ItemEditViewModel(
         }
     }
 
-    fun markConsumed(onDone: () -> Unit) {
-        val id = _uiState.value.id ?: return
-        viewModelScope.launch {
-            repository.markConsumed(id)
-            onDone()
-        }
+    fun onConsumedChange(value: Boolean) {
+        _uiState.value = _uiState.value.copy(isConsumed = value)
     }
 
     class Factory(
@@ -109,4 +106,5 @@ class ItemEditViewModel(
             throw IllegalArgumentException("Unknown ViewModel class")
         }
     }
+
 }

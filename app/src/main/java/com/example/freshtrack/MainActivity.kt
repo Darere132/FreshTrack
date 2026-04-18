@@ -70,7 +70,7 @@ class MainActivity : ComponentActivity() {
                                 itemEditViewModel.save { navController.popBackStack() }
                             },
                             onDelete = {},           // not reachable in create mode (button hidden)
-                            onMarkConsumed = {},     // not reachable in create mode (button hidden)
+                            onConsumedChange = itemEditViewModel::onConsumedChange,     // not reachable in create mode (button hidden)
                             onBack = { navController.popBackStack() }
                         )
                     }
@@ -101,9 +101,7 @@ class MainActivity : ComponentActivity() {
                             onDelete = {
                                 itemEditViewModel.delete { navController.popBackStack() }
                             },
-                            onMarkConsumed = {
-                                itemEditViewModel.markConsumed { navController.popBackStack() }
-                            },
+                            onConsumedChange = itemEditViewModel::onConsumedChange,
                             onBack = { navController.popBackStack() }
                         )
                     }

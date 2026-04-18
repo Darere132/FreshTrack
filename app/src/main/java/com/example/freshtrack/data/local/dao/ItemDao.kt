@@ -2,6 +2,7 @@ package com.example.freshtrack.data.local.dao
 
 import androidx.room.*
 import com.example.freshtrack.data.local.model.ItemEntity
+import com.example.freshtrack.data.local.model.ItemWithCategory
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -9,6 +10,10 @@ interface ItemDao {
 
     @Query("SELECT * FROM items ORDER BY expirationDate ASC")
     fun getAllItems(): Flow<List<ItemEntity>>
+
+    @Transaction
+    @Query("SELECT * FROM items ORDER BY expirationDate ASC")
+    fun getAllItemsWithCategoryStream(): Flow<List<ItemWithCategory>>
 
     @Query("SELECT * FROM items WHERE id = :id")
     suspend fun getItemById(id: Int): ItemEntity?
