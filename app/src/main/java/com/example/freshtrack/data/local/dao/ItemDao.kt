@@ -18,6 +18,10 @@ interface ItemDao {
     @Query("SELECT * FROM items WHERE id = :id")
     suspend fun getItemById(id: Int): ItemEntity?
 
+    // Jednorazové čítanie pre Worker (bez Flow)
+    @Query("SELECT * FROM items WHERE isConsumed = 0")
+    suspend fun getActiveItemsOnce(): List<ItemEntity>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertItem(itemEntity: ItemEntity): Long
 

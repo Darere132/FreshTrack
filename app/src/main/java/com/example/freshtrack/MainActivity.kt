@@ -1,9 +1,12 @@
 package com.example.freshtrack
 
 import com.example.freshtrack.presentation.inventory.InventoryViewModel
+import android.Manifest
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -42,8 +45,19 @@ class MainActivity : ComponentActivity() {
         SettingsViewModel.Factory(app.container.settingsDataStore)
     }
 
+    // Launcher na vyžiadanie POST_NOTIFICATIONS permission
+    private val notificationPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { /* výsledok ignorujeme — ak odmietne, notifikácie jednoducho nechodia */ }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Vyžiadaj permission pri prvom spustení (len Android 13+)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
+
         setContent {
             val settingsState by settingsViewModel.uiState.collectAsStateWithLifecycle()
 
