@@ -14,9 +14,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.example.freshtrack.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -30,7 +32,7 @@ fun SettingsScreen(
     onThemeChange: (AppTheme) -> Unit,
     onNotificationTimeSave: (hour: Int, minute: Int) -> Unit,
     daysInputState: String,
-    daysInputError: String?
+    daysInputError: Int?   // @StringRes Int? — resolved here in the Composable
 ) {
     val keyboard = LocalSoftwareKeyboardController.current
     val colors = MaterialTheme.colorScheme
@@ -51,22 +53,19 @@ fun SettingsScreen(
         unselectedTextColor = colors.onSurfaceVariant
     )
 
-    // ── TimePicker dialog ──────────────────────────────────────────────────
     if (showTimePicker) {
         AlertDialog(
             onDismissRequest = { showTimePicker = false },
-            title = { Text("Notification time") },
-            text = {
-                TimePicker(state = timePickerState)
-            },
+            title = { Text(stringResource(R.string.settings_time_picker_title)) },
+            text = { TimePicker(state = timePickerState) },
             confirmButton = {
                 Button(onClick = {
                     onNotificationTimeSave(timePickerState.hour, timePickerState.minute)
                     showTimePicker = false
-                }) { Text("Save") }
+                }) { Text(stringResource(R.string.btn_save)) }
             },
             dismissButton = {
-                OutlinedButton(onClick = { showTimePicker = false }) { Text("Cancel") }
+                OutlinedButton(onClick = { showTimePicker = false }) { Text(stringResource(R.string.btn_cancel)) }
             }
         )
     }
@@ -74,186 +73,116 @@ fun SettingsScreen(
     Scaffold(
         containerColor = colors.background,
         topBar = {
-            Surface(
-                color = colors.surface,
-                tonalElevation = 0.dp,
-                shadowElevation = 0.dp,
-                modifier = Modifier.fillMaxWidth()
-            ) {
+            Surface(color = colors.surface, tonalElevation = 0.dp, shadowElevation = 0.dp, modifier = Modifier.fillMaxWidth()) {
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 14.dp),
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 14.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("Settings", style = MaterialTheme.typography.titleLarge)
+                    Text(stringResource(R.string.settings_title), style = MaterialTheme.typography.titleLarge)
                 }
             }
         },
         bottomBar = {
-            NavigationBar(
-                containerColor = colors.surface,
-                tonalElevation = 0.dp
-            ) {
+            NavigationBar(containerColor = colors.surface, tonalElevation = 0.dp) {
                 NavigationBarItem(
-                    selected = false,
-                    onClick = onInventoryClick,
-                    icon = { Icon(Icons.Default.Inventory2, contentDescription = "Inventory") },
-                    label = { Text("Inventory") },
-                    colors = navItemColors
+                    selected = false, onClick = onInventoryClick,
+                    icon = { Icon(Icons.Default.Inventory2, contentDescription = stringResource(R.string.nav_inventory)) },
+                    label = { Text(stringResource(R.string.nav_inventory)) }, colors = navItemColors
                 )
                 NavigationBarItem(
-                    selected = false,
-                    onClick = onRecipesClick,
-                    icon = { Icon(Icons.Default.MenuBook, contentDescription = "Recipes") },
-                    label = { Text("Recipes") },
-                    colors = navItemColors
+                    selected = false, onClick = onRecipesClick,
+                    icon = { Icon(Icons.Default.MenuBook, contentDescription = stringResource(R.string.nav_recipes)) },
+                    label = { Text(stringResource(R.string.nav_recipes)) }, colors = navItemColors
                 )
                 NavigationBarItem(
-                    selected = true,
-                    onClick = {},
-                    icon = { Icon(Icons.Default.Settings, contentDescription = "Settings") },
-                    label = { Text("Settings") },
-                    colors = navItemColors
+                    selected = true, onClick = {},
+                    icon = { Icon(Icons.Default.Settings, contentDescription = stringResource(R.string.nav_settings)) },
+                    label = { Text(stringResource(R.string.nav_settings)) }, colors = navItemColors
                 )
             }
         }
     ) { padding ->
-        Column(
-            modifier = Modifier
-                .padding(padding)
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-        ) {
+        Column(modifier = Modifier.padding(padding).fillMaxSize().verticalScroll(rememberScrollState())) {
             HorizontalDivider(thickness = 1.dp, color = colors.outlineVariant)
 
             // ── Notifications ──────────────────────────────────────────────
-            SectionHeader("Notifications")
+            SectionHeader(stringResource(R.string.settings_section_notifications))
 
             SettingsRow(
-                label = "Enable notifications",
-                description = "Get alerted before items expire"
+                label = stringResource(R.string.settings_notifications_enable),
+                description = stringResource(R.string.settings_notifications_enable_desc)
             ) {
-                Switch(
-                    checked = uiState.notificationsEnabled,
-                    onCheckedChange = onNotificationsToggle
-                )
+                Switch(checked = uiState.notificationsEnabled, onCheckedChange = onNotificationsToggle)
             }
 
             if (uiState.notificationsEnabled) {
-                // Days before expiry
                 Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
-                    Text("Days before expiry", style = MaterialTheme.typography.bodyLarge)
+                    Text(stringResource(R.string.settings_days_before_expiry), style = MaterialTheme.typography.bodyLarge)
                     Text(
-                        text = "How many days ahead to send the notification",
+                        text = stringResource(R.string.settings_days_before_expiry_desc),
                         style = MaterialTheme.typography.bodySmall,
                         color = colors.onSurfaceVariant,
                         modifier = Modifier.padding(bottom = 8.dp)
                     )
-                    Row(
-                        verticalAlignment = Alignment.Top,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
+                    Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         OutlinedTextField(
                             value = daysInputState,
                             onValueChange = onDaysInputChange,
-                            label = { Text("Days") },
+                            label = { Text(stringResource(R.string.settings_days_label)) },
                             isError = daysInputError != null,
-                            supportingText = { if (daysInputError != null) Text(daysInputError) },
-                            keyboardOptions = KeyboardOptions(
-                                keyboardType = KeyboardType.Number,
-                                imeAction = ImeAction.Done
-                            ),
-                            keyboardActions = KeyboardActions(
-                                onDone = {
-                                    val num = daysInputState.trim().toIntOrNull()
-                                    if (num != null && daysInputError == null) {
-                                        onDaysSave(num)
-                                        keyboard?.hide()
-                                    }
-                                }
-                            ),
+                            supportingText = { if (daysInputError != null) Text(stringResource(daysInputError)) },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done),
+                            keyboardActions = KeyboardActions(onDone = {
+                                val num = daysInputState.trim().toIntOrNull()
+                                if (num != null && daysInputError == null) { onDaysSave(num); keyboard?.hide() }
+                            }),
                             singleLine = true,
                             modifier = Modifier.width(120.dp)
                         )
                         Button(
                             onClick = {
                                 val num = daysInputState.trim().toIntOrNull()
-                                if (num != null && daysInputError == null) {
-                                    onDaysSave(num)
-                                    keyboard?.hide()
-                                }
+                                if (num != null && daysInputError == null) { onDaysSave(num); keyboard?.hide() }
                             },
                             enabled = daysInputError == null && daysInputState.isNotBlank(),
                             modifier = Modifier.padding(top = 8.dp)
-                        ) { Text("Save") }
+                        ) { Text(stringResource(R.string.btn_save)) }
                     }
                 }
 
-                // Notification time
                 SettingsRow(
-                    label = "Notification time",
-                    description = "Daily check at %02d:%02d".format(
-                        uiState.notificationHour,
-                        uiState.notificationMinute
-                    )
+                    label = stringResource(R.string.settings_notification_time),
+                    description = stringResource(R.string.settings_notification_time_desc, uiState.notificationHour, uiState.notificationMinute)
                 ) {
                     OutlinedButton(onClick = { showTimePicker = true }) {
-                        Text(
-                            "%02d:%02d".format(
-                                uiState.notificationHour,
-                                uiState.notificationMinute
-                            )
-                        )
+                        Text(stringResource(R.string.settings_notification_time_desc, uiState.notificationHour, uiState.notificationMinute))
                     }
                 }
             }
 
-            HorizontalDivider(
-                modifier = Modifier.padding(vertical = 8.dp),
-                thickness = 1.dp,
-                color = colors.outlineVariant
-            )
+            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp), thickness = 1.dp, color = colors.outlineVariant)
 
             // ── Appearance ─────────────────────────────────────────────────
-            SectionHeader("Appearance")
+            SectionHeader(stringResource(R.string.settings_section_appearance))
 
             Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
-                Text("Theme", style = MaterialTheme.typography.bodyLarge)
-                Text(
-                    text = "Choose the app colour scheme",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = colors.onSurfaceVariant,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-                ExposedDropdownMenuBox(
-                    expanded = themeExpanded,
-                    onExpandedChange = { themeExpanded = !themeExpanded }
-                ) {
+                Text(stringResource(R.string.settings_theme), style = MaterialTheme.typography.bodyLarge)
+                Text(text = stringResource(R.string.settings_theme_desc), style = MaterialTheme.typography.bodySmall, color = colors.onSurfaceVariant, modifier = Modifier.padding(bottom = 8.dp))
+                ExposedDropdownMenuBox(expanded = themeExpanded, onExpandedChange = { themeExpanded = !themeExpanded }) {
                     OutlinedTextField(
-                        value = uiState.theme.label,
+                        value = stringResource(uiState.theme.labelRes),
                         onValueChange = {},
                         readOnly = true,
-                        label = { Text("Theme") },
-                        trailingIcon = {
-                            ExposedDropdownMenuDefaults.TrailingIcon(expanded = themeExpanded)
-                        },
-                        modifier = Modifier
-                            .menuAnchor()
-                            .fillMaxWidth()
+                        label = { Text(stringResource(R.string.settings_theme)) },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = themeExpanded) },
+                        modifier = Modifier.menuAnchor().fillMaxWidth()
                     )
-                    ExposedDropdownMenu(
-                        expanded = themeExpanded,
-                        onDismissRequest = { themeExpanded = false }
-                    ) {
+                    ExposedDropdownMenu(expanded = themeExpanded, onDismissRequest = { themeExpanded = false }) {
                         AppTheme.entries.forEach { theme ->
                             DropdownMenuItem(
-                                text = { Text(theme.label) },
-                                onClick = {
-                                    onThemeChange(theme)
-                                    themeExpanded = false
-                                }
+                                text = { Text(stringResource(theme.labelRes)) },
+                                onClick = { onThemeChange(theme); themeExpanded = false }
                             )
                         }
                     }
@@ -263,38 +192,21 @@ fun SettingsScreen(
     }
 }
 
-// ── Helpers ────────────────────────────────────────────────────────────────────
-
 @Composable
 private fun SectionHeader(title: String) {
-    Text(
-        text = title,
-        style = MaterialTheme.typography.titleSmall,
-        color = MaterialTheme.colorScheme.primary,
-        modifier = Modifier.padding(start = 16.dp, top = 16.dp, bottom = 4.dp)
-    )
+    Text(text = title, style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(start = 16.dp, top = 16.dp, bottom = 4.dp))
 }
 
 @Composable
-private fun SettingsRow(
-    label: String,
-    description: String,
-    control: @Composable () -> Unit
-) {
+private fun SettingsRow(label: String, description: String, control: @Composable () -> Unit) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 12.dp),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(modifier = Modifier.weight(1f).padding(end = 16.dp)) {
             Text(text = label, style = MaterialTheme.typography.bodyLarge)
-            Text(
-                text = description,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            Text(text = description, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         control()
     }

@@ -154,7 +154,7 @@ class MainActivity : ComponentActivity() {
                             onDaysInputChange = { input ->
                                 val result = settingsViewModel.onDaysInputChange(input)
                                 daysInput = result.daysInput
-                                daysError = result.daysInputError
+                                daysError = result.daysInputError.toString()
                             },
                             onDaysSave = { days ->
                                 settingsViewModel.saveDaysBeforeExpiry(days)
@@ -164,7 +164,7 @@ class MainActivity : ComponentActivity() {
                                 settingsViewModel.saveNotificationTime(hour, minute)
                             },
                             daysInputState = daysInput,
-                            daysInputError = daysError
+                            daysInputError = daysError?.toInt()
                         )
                     }
                 }

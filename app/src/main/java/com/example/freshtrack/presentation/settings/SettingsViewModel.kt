@@ -1,8 +1,10 @@
 package com.example.freshtrack.presentation.settings
 
+import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.example.freshtrack.R
 import com.example.freshtrack.data.settings.SettingsDataStore
 import com.example.freshtrack.data.settings.SettingsDataStore.Companion.THEME_DARK
 import com.example.freshtrack.data.settings.SettingsDataStore.Companion.THEME_LIGHT
@@ -13,22 +15,20 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-// All three settings combined into one data class for the UI
 data class SettingsUiState(
     val notificationsEnabled: Boolean = true,
     val daysBeforeExpiry: Int = 3,
-    // Raw text in the input field — can be invalid while the user types
     val daysInput: String = "3",
-    val daysInputError: String? = null,
+    @StringRes val daysInputError: Int? = null,
     val theme: AppTheme = AppTheme.SYSTEM,
     val notificationHour: Int = 8,
     val notificationMinute: Int = 0
 )
 
-enum class AppTheme(val key: String, val label: String) {
-    SYSTEM(THEME_SYSTEM, "System default"),
-    LIGHT(THEME_LIGHT, "Light"),
-    DARK(THEME_DARK, "Dark");
+enum class AppTheme(val key: String, @StringRes val labelRes: Int) {
+    SYSTEM(THEME_SYSTEM, R.string.theme_system),
+    LIGHT(THEME_LIGHT, R.string.theme_light),
+    DARK(THEME_DARK, R.string.theme_dark);
 
     companion object {
         fun fromKey(key: String) = entries.firstOrNull { it.key == key } ?: SYSTEM
@@ -42,14 +42,18 @@ class SettingsViewModel(
     val uiState: StateFlow<SettingsUiState> = combine(
         dataStore.notificationsEnabled,
         dataStore.daysBeforeExpiry,
-        dataStore.theme
-    ) { enabled, days, themeKey ->
+        dataStore.theme,
+        dataStore.notificationHour,
+        dataStore.notificationMinute
+    ) { enabled, days, themeKey, hour, minute ->
         SettingsUiState(
             notificationsEnabled = enabled,
             daysBeforeExpiry = days,
             daysInput = days.toString(),
             daysInputError = null,
-            theme = AppTheme.fromKey(themeKey)
+            theme = AppTheme.fromKey(themeKey),
+            notificationHour = hour,
+            notificationMinute = minute
         )
     }.stateIn(
         scope = viewModelScope,
@@ -61,21 +65,19 @@ class SettingsViewModel(
         viewModelScope.launch { dataStore.setNotificationsEnabled(enabled) }
     }
 
-    // Called on every keystroke — validates but doesn't persist yet
     fun onDaysInputChange(input: String): SettingsUiState {
         val trimmed = input.trim()
         val number = trimmed.toIntOrNull()
-        val error = when {
-            trimmed.isBlank() -> "Required"
-            number == null -> "Enter a valid number"
-            number < 1 -> "Minimum is 1 day"
-            number > 365 -> "Maximum is 365 days"
+        val errorRes: Int? = when {
+            trimmed.isBlank() -> R.string.error_required
+            number == null -> R.string.error_invalid_number
+            number < 1 -> R.string.error_min_days
+            number > 365 -> R.string.error_max_days
             else -> null
         }
-        return uiState.value.copy(daysInput = input, daysInputError = error)
+        return uiState.value.copy(daysInput = input, daysInputError = errorRes)
     }
 
-    // Persists only when the value is valid
     fun saveDaysBeforeExpiry(days: Int) {
         viewModelScope.launch { dataStore.setDaysBeforeExpiry(days) }
     }

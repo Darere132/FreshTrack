@@ -13,8 +13,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.example.freshtrack.R
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -63,54 +65,37 @@ fun ItemEditScreen(
 
     val formattedDate = uiState.expirationDate?.let {
         SimpleDateFormat("dd.MM.yyyy", Locale.getDefault()).format(Date(it))
-    } ?: "DD.MM.YYYY"
+    } ?: stringResource(R.string.date_placeholder)
 
     if (showDeleteConfirm) {
         AlertDialog(
             onDismissRequest = { showDeleteConfirm = false },
-            title = { Text("Delete item") },
-            text = { Text("Are you sure you want to delete \"${uiState.name}\"?") },
+            title = { Text(stringResource(R.string.delete_confirm_title)) },
+            text = { Text(stringResource(R.string.delete_confirm_message, uiState.name)) },
             confirmButton = {
                 Button(
-                    onClick = {
-                        showDeleteConfirm = false
-                        onDelete()
-                    },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = colors.error,
-                        contentColor = colors.onError
-                    )
-                ) { Text("Delete") }
+                    onClick = { showDeleteConfirm = false; onDelete() },
+                    colors = ButtonDefaults.buttonColors(containerColor = colors.error, contentColor = colors.onError)
+                ) { Text(stringResource(R.string.btn_delete)) }
             },
             dismissButton = {
-                OutlinedButton(onClick = { showDeleteConfirm = false }) { Text("Cancel") }
+                OutlinedButton(onClick = { showDeleteConfirm = false }) { Text(stringResource(R.string.btn_cancel)) }
             }
         )
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(colors.background)
-    ) {
+    Column(modifier = Modifier.fillMaxSize().background(colors.background)) {
         // TOP BAR
-        Surface(
-            color = colors.surface,
-            shadowElevation = 1.dp,
-            modifier = Modifier.fillMaxWidth()
-        ) {
+        Surface(color = colors.surface, shadowElevation = 1.dp, modifier = Modifier.fillMaxWidth()) {
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .statusBarsPadding()
-                    .padding(horizontal = 8.dp, vertical = 12.dp),
+                modifier = Modifier.fillMaxWidth().statusBarsPadding().padding(horizontal = 8.dp, vertical = 12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(onClick = onBack) {
-                    Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                    Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.cd_back))
                 }
                 Text(
-                    text = if (isEdit) "Edit Item" else "Add Item",
+                    text = if (isEdit) stringResource(R.string.title_edit_item) else stringResource(R.string.title_add_item),
                     style = MaterialTheme.typography.titleLarge
                 )
             }
@@ -118,163 +103,74 @@ fun ItemEditScreen(
 
         // CONTENT
         Column(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth()
-                .verticalScroll(rememberScrollState())
-                .padding(16.dp)
+            modifier = Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()).padding(16.dp)
         ) {
-            Surface(
-                color = colors.surface,
-                shape = MaterialTheme.shapes.medium,
-                shadowElevation = 1.dp,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Column(
-                    modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    Text("Name *")
-                    OutlinedTextField(
-                        value = uiState.name,
-                        onValueChange = onNameChange,
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true
-                    )
+            Surface(color = colors.surface, shape = MaterialTheme.shapes.medium, shadowElevation = 1.dp, modifier = Modifier.fillMaxWidth()) {
+                Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
 
-                    Text("Category")
-                    ExposedDropdownMenuBox(
-                        expanded = categoryExpanded,
-                        onExpandedChange = { categoryExpanded = !categoryExpanded }
-                    ) {
-                        val selectedName = uiState.categories
-                            .firstOrNull { it.id == uiState.selectedCategoryId }?.name
-                            ?: "No category"
+                    Text(stringResource(R.string.field_name))
+                    OutlinedTextField(value = uiState.name, onValueChange = onNameChange, modifier = Modifier.fillMaxWidth(), singleLine = true)
 
+                    Text(stringResource(R.string.field_category))
+                    ExposedDropdownMenuBox(expanded = categoryExpanded, onExpandedChange = { categoryExpanded = !categoryExpanded }) {
+                        val selectedName = uiState.categories.firstOrNull { it.id == uiState.selectedCategoryId }?.name
+                            ?: stringResource(R.string.no_category)
                         OutlinedTextField(
-                            value = selectedName,
-                            onValueChange = {},
-                            readOnly = true,
-                            trailingIcon = {
-                                ExposedDropdownMenuDefaults.TrailingIcon(expanded = categoryExpanded)
-                            },
-                            modifier = Modifier
-                                .menuAnchor()
-                                .fillMaxWidth()
+                            value = selectedName, onValueChange = {}, readOnly = true,
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = categoryExpanded) },
+                            modifier = Modifier.menuAnchor().fillMaxWidth()
                         )
-
-                        ExposedDropdownMenu(
-                            expanded = categoryExpanded,
-                            onDismissRequest = { categoryExpanded = false }
-                        ) {
-                            DropdownMenuItem(
-                                text = { Text("No category") },
-                                onClick = {
-                                    onCategoryChange(null)
-                                    categoryExpanded = false
-                                }
-                            )
+                        ExposedDropdownMenu(expanded = categoryExpanded, onDismissRequest = { categoryExpanded = false }) {
+                            DropdownMenuItem(text = { Text(stringResource(R.string.no_category)) }, onClick = { onCategoryChange(null); categoryExpanded = false })
                             uiState.categories.forEach { cat ->
-                                DropdownMenuItem(
-                                    text = { Text(cat.name) },
-                                    onClick = {
-                                        onCategoryChange(cat.id)
-                                        categoryExpanded = false
-                                    }
-                                )
+                                DropdownMenuItem(text = { Text(cat.name) }, onClick = { onCategoryChange(cat.id); categoryExpanded = false })
                             }
                         }
                     }
 
-                    Text("Quantity")
-                    OutlinedTextField(
-                        value = uiState.quantity,
-                        onValueChange = onQuantityChange,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true
-                    )
+                    Text(stringResource(R.string.field_quantity))
+                    OutlinedTextField(value = uiState.quantity, onValueChange = onQuantityChange, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal), modifier = Modifier.fillMaxWidth(), singleLine = true)
 
-                    Text("Unit")
-                    OutlinedTextField(
-                        value = uiState.unit,
-                        onValueChange = onUnitChange,
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true
-                    )
+                    Text(stringResource(R.string.field_unit))
+                    OutlinedTextField(value = uiState.unit, onValueChange = onUnitChange, modifier = Modifier.fillMaxWidth(), singleLine = true)
 
-                    Text("Expiration date *")
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        OutlinedButton(
-                            onClick = { datePickerDialog.show() },
-                            modifier = Modifier.weight(1f)
-                        ) {
+                    Text(stringResource(R.string.field_expiry_date))
+                    Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                        OutlinedButton(onClick = { datePickerDialog.show() }, modifier = Modifier.weight(1f)) {
                             Text(formattedDate)
                         }
-
                         if (isEdit) {
                             Spacer(modifier = Modifier.width(12.dp))
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text("Consumed", style = MaterialTheme.typography.labelMedium)
-                                Switch(
-                                    checked = uiState.isConsumed,
-                                    onCheckedChange = onConsumedChange
-                                )
+                                Text(stringResource(R.string.label_consumed), style = MaterialTheme.typography.labelMedium)
+                                Switch(checked = uiState.isConsumed, onCheckedChange = onConsumedChange)
                             }
                         }
                     }
 
-                    Text("Note")
-                    OutlinedTextField(
-                        value = uiState.note,
-                        onValueChange = onNoteChange,
-                        modifier = Modifier.fillMaxWidth(),
-                        minLines = 3
-                    )
+                    Text(stringResource(R.string.field_note))
+                    OutlinedTextField(value = uiState.note, onValueChange = onNoteChange, modifier = Modifier.fillMaxWidth(), minLines = 3)
                 }
             }
         }
 
         // BOTTOM ACTIONS
-        Surface(
-            color = colors.surface,
-            shadowElevation = 1.dp,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Column(
-                modifier = Modifier
-                    .navigationBarsPadding()
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
+        Surface(color = colors.surface, shadowElevation = 1.dp, modifier = Modifier.fillMaxWidth()) {
+            Column(modifier = Modifier.navigationBarsPadding().padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 Button(
-                    onClick = onSave,
-                    enabled = uiState.isValid,
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = colors.primary,
-                        contentColor = colors.onPrimary
-                    )
-                ) { Text("Save") }
+                    onClick = onSave, enabled = uiState.isValid, modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(containerColor = colors.primary, contentColor = colors.onPrimary)
+                ) { Text(stringResource(R.string.btn_save)) }
 
-                OutlinedButton(
-                    onClick = onBack,
-                    modifier = Modifier.fillMaxWidth()
-                ) { Text("Cancel") }
+                OutlinedButton(onClick = onBack, modifier = Modifier.fillMaxWidth()) {
+                    Text(stringResource(R.string.btn_cancel))
+                }
 
                 if (isEdit) {
                     OutlinedButton(
-                        onClick = { showDeleteConfirm = true },
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            contentColor = colors.error
-                        )
-                    ) {
-                        Text("Delete")
-                    }
+                        onClick = { showDeleteConfirm = true }, modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = colors.error)
+                    ) { Text(stringResource(R.string.btn_delete)) }
                 }
             }
         }
