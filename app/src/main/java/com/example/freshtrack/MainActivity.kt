@@ -7,6 +7,9 @@ import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -17,6 +20,9 @@ import com.example.freshtrack.presentation.inventory.InventoryScreen
 import com.example.freshtrack.presentation.inventory.ItemEditScreen
 import com.example.freshtrack.presentation.inventory.ItemEditViewModel
 import com.example.freshtrack.presentation.inventory.InventoryViewModelFactory
+import com.example.freshtrack.presentation.settings.AppTheme
+import com.example.freshtrack.presentation.settings.SettingsScreen
+import com.example.freshtrack.presentation.settings.SettingsViewModel
 import com.example.freshtrack.ui.theme.FreshTrackTheme
 
 class MainActivity : ComponentActivity() {
@@ -31,10 +37,23 @@ class MainActivity : ComponentActivity() {
         ItemEditViewModel.Factory(app.container.itemRepository)
     }
 
+    private val settingsViewModel: SettingsViewModel by viewModels {
+        val app = application as FreshTrackApplication
+        SettingsViewModel.Factory(app.container.settingsDataStore)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            FreshTrackTheme {
+            val settingsState by settingsViewModel.uiState.collectAsStateWithLifecycle()
+
+            val useDarkTheme = when (settingsState.theme) {
+                AppTheme.DARK -> true
+                AppTheme.LIGHT -> false
+                AppTheme.SYSTEM -> null
+            }
+
+            FreshTrackTheme(darkTheme = useDarkTheme, dynamicColor = false) {
                 val navController = rememberNavController()
 
                 NavHost(
@@ -46,7 +65,8 @@ class MainActivity : ComponentActivity() {
                         InventoryScreen(
                             uiState = uiState,
                             onAddClick = { navController.navigate("item_edit") },
-                            onEditClick = { id -> navController.navigate("item_edit/$id") }
+                            onEditClick = { id -> navController.navigate("item_edit/$id") },
+                            onSettingsClick = { navController.navigate("settings") }
                         )
                     }
 
@@ -70,7 +90,7 @@ class MainActivity : ComponentActivity() {
                                 itemEditViewModel.save { navController.popBackStack() }
                             },
                             onDelete = {},           // not reachable in create mode (button hidden)
-                            onConsumedChange = itemEditViewModel::onConsumedChange,     // not reachable in create mode (button hidden)
+                            onConsumedChange = itemEditViewModel::onConsumedChange,
                             onBack = { navController.popBackStack() }
                         )
                     }
@@ -103,6 +123,31 @@ class MainActivity : ComponentActivity() {
                             },
                             onConsumedChange = itemEditViewModel::onConsumedChange,
                             onBack = { navController.popBackStack() }
+                        )
+                    }
+
+                    // Settings
+                    composable("settings") {
+                        var daysInput by remember {
+                            mutableStateOf(settingsState.daysBeforeExpiry.toString())
+                        }
+                        var daysError by remember { mutableStateOf<String?>(null) }
+
+                        SettingsScreen(
+                            uiState = settingsState,
+                            onInventoryClick = { navController.navigate("inventory") { popUpTo("inventory") { inclusive = true } } },
+                            onNotificationsToggle = settingsViewModel::setNotificationsEnabled,
+                            onDaysInputChange = { input ->
+                                val result = settingsViewModel.onDaysInputChange(input)
+                                daysInput = result.daysInput
+                                daysError = result.daysInputError
+                            },
+                            onDaysSave = { days ->
+                                settingsViewModel.saveDaysBeforeExpiry(days)
+                            },
+                            onThemeChange = settingsViewModel::setTheme,
+                            daysInputState = daysInput,
+                            daysInputError = daysError
                         )
                     }
                 }

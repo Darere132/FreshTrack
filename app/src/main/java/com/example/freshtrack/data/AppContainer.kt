@@ -4,9 +4,11 @@ import android.content.Context
 import com.example.freshtrack.data.local.FreshTrackDatabase
 import com.example.freshtrack.data.repository.ItemRepository
 import com.example.freshtrack.data.repository.OfflineItemRepository
+import com.example.freshtrack.data.settings.SettingsDataStore
 
 interface AppContainer {
     val itemRepository: ItemRepository
+    val settingsDataStore: SettingsDataStore
 }
 
 class AppDataContainer(context: Context) : AppContainer {
@@ -14,4 +16,5 @@ class AppDataContainer(context: Context) : AppContainer {
     override val itemRepository: ItemRepository by lazy {
         OfflineItemRepository(database.itemDao(), database.categoryDao())
     }
+    override val settingsDataStore = SettingsDataStore(context)
 }
