@@ -28,12 +28,20 @@ fun SettingsScreen(
     onDaysInputChange: (String) -> Unit,
     onDaysSave: (Int) -> Unit,
     onThemeChange: (AppTheme) -> Unit,
+    onNotificationTimeSave: (hour: Int, minute: Int) -> Unit,
     daysInputState: String,
     daysInputError: String?
 ) {
     val keyboard = LocalSoftwareKeyboardController.current
     val colors = MaterialTheme.colorScheme
     var themeExpanded by remember { mutableStateOf(false) }
+    var showTimePicker by remember { mutableStateOf(false) }
+
+    val timePickerState = rememberTimePickerState(
+        initialHour = uiState.notificationHour,
+        initialMinute = uiState.notificationMinute,
+        is24Hour = true
+    )
 
     val navItemColors = NavigationBarItemDefaults.colors(
         selectedIconColor = colors.primary,
@@ -42,6 +50,26 @@ fun SettingsScreen(
         unselectedIconColor = colors.onSurfaceVariant,
         unselectedTextColor = colors.onSurfaceVariant
     )
+
+    // ── TimePicker dialog ──────────────────────────────────────────────────
+    if (showTimePicker) {
+        AlertDialog(
+            onDismissRequest = { showTimePicker = false },
+            title = { Text("Notification time") },
+            text = {
+                TimePicker(state = timePickerState)
+            },
+            confirmButton = {
+                Button(onClick = {
+                    onNotificationTimeSave(timePickerState.hour, timePickerState.minute)
+                    showTimePicker = false
+                }) { Text("Save") }
+            },
+            dismissButton = {
+                OutlinedButton(onClick = { showTimePicker = false }) { Text("Cancel") }
+            }
+        )
+    }
 
     Scaffold(
         containerColor = colors.background,
@@ -114,6 +142,7 @@ fun SettingsScreen(
             }
 
             if (uiState.notificationsEnabled) {
+                // Days before expiry
                 Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
                     Text("Days before expiry", style = MaterialTheme.typography.bodyLarge)
                     Text(
@@ -159,6 +188,24 @@ fun SettingsScreen(
                             enabled = daysInputError == null && daysInputState.isNotBlank(),
                             modifier = Modifier.padding(top = 8.dp)
                         ) { Text("Save") }
+                    }
+                }
+
+                // Notification time
+                SettingsRow(
+                    label = "Notification time",
+                    description = "Daily check at %02d:%02d".format(
+                        uiState.notificationHour,
+                        uiState.notificationMinute
+                    )
+                ) {
+                    OutlinedButton(onClick = { showTimePicker = true }) {
+                        Text(
+                            "%02d:%02d".format(
+                                uiState.notificationHour,
+                                uiState.notificationMinute
+                            )
+                        )
                     }
                 }
             }

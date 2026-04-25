@@ -20,7 +20,9 @@ data class SettingsUiState(
     // Raw text in the input field — can be invalid while the user types
     val daysInput: String = "3",
     val daysInputError: String? = null,
-    val theme: AppTheme = AppTheme.SYSTEM
+    val theme: AppTheme = AppTheme.SYSTEM,
+    val notificationHour: Int = 8,
+    val notificationMinute: Int = 0
 )
 
 enum class AppTheme(val key: String, val label: String) {
@@ -80,6 +82,10 @@ class SettingsViewModel(
 
     fun setTheme(theme: AppTheme) {
         viewModelScope.launch { dataStore.setTheme(theme.key) }
+    }
+
+    fun saveNotificationTime(hour: Int, minute: Int) {
+        viewModelScope.launch { dataStore.setNotificationTime(hour, minute) }
     }
 
     class Factory(private val dataStore: SettingsDataStore) : ViewModelProvider.Factory {

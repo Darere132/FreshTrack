@@ -28,6 +28,11 @@ class SettingsDataStore(private val context: Context) {
         const val DEFAULT_DAYS_BEFORE_EXPIRY = 3
         const val DEFAULT_NOTIFICATIONS_ENABLED = true
         const val DEFAULT_THEME = THEME_SYSTEM
+
+        private val KEY_NOTIFICATION_HOUR = intPreferencesKey("notification_hour")
+        private val KEY_NOTIFICATION_MINUTE = intPreferencesKey("notification_minute")
+        const val DEFAULT_NOTIFICATION_HOUR = 8    // predvolene 08:00
+        const val DEFAULT_NOTIFICATION_MINUTE = 0
     }
 
     // --- Flows (read) ---
@@ -41,6 +46,12 @@ class SettingsDataStore(private val context: Context) {
     val theme: Flow<String> = context.dataStore.data
         .map { it[KEY_THEME] ?: DEFAULT_THEME }
 
+    val notificationHour: Flow<Int> = context.dataStore.data
+        .map { it[KEY_NOTIFICATION_HOUR] ?: DEFAULT_NOTIFICATION_HOUR }
+
+    val notificationMinute: Flow<Int> = context.dataStore.data
+        .map { it[KEY_NOTIFICATION_MINUTE] ?: DEFAULT_NOTIFICATION_MINUTE }
+
     // --- Suspend writes ---
 
     suspend fun setNotificationsEnabled(enabled: Boolean) {
@@ -53,5 +64,12 @@ class SettingsDataStore(private val context: Context) {
 
     suspend fun setTheme(theme: String) {
         context.dataStore.edit { it[KEY_THEME] = theme }
+    }
+
+    suspend fun setNotificationTime(hour: Int, minute: Int) {
+        context.dataStore.edit {
+            it[KEY_NOTIFICATION_HOUR] = hour
+            it[KEY_NOTIFICATION_MINUTE] = minute
+        }
     }
 }

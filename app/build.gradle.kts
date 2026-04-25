@@ -32,8 +32,10 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
-    kotlinOptions {
-        jvmTarget = "11"
+    kotlin {
+        compilerOptions {
+            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11)
+        }
     }
     buildFeatures {
         compose = true
@@ -65,7 +67,7 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.lifecycle.runtime.compose)
 
-    implementation("androidx.compose.material:material-icons-extended")
-
-    implementation("androidx.datastore:datastore-preferences:1.2.1")
+    implementation(libs.datastore.preferences)
+    implementation(libs.work.runtime)
+    implementation(libs.icons.extended)
 }

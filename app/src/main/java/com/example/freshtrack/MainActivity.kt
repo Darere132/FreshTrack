@@ -146,6 +146,9 @@ class MainActivity : ComponentActivity() {
                                 settingsViewModel.saveDaysBeforeExpiry(days)
                             },
                             onThemeChange = settingsViewModel::setTheme,
+                            onNotificationTimeSave = { hour, minute ->
+                                settingsViewModel.saveNotificationTime(hour, minute)
+                            },
                             daysInputState = daysInput,
                             daysInputError = daysError
                         )
